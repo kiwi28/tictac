@@ -1,0 +1,8 @@
+.log {
+  border: 1px solid teal;
+  background-color: antiquewhite;
+  position: absolute;
+  width: 200px;
+  right: 50px;
+  padding: 5px;
+}
