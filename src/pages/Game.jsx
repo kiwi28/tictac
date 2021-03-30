@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import Board from "../components/Board";
 import HistoryLog from "../components/HistoryLog";
-import Status from "../components/Status";
 import "../styles/Game.css";
-import { calculateWinner } from "../utils.js";
+import { calculateWinner, getMessageByStatus } from "../utils.js";
 
 export const Game = () => {
   const [gameState, setGameState] = useState({
@@ -12,43 +11,47 @@ export const Game = () => {
     history: [Array(9).fill(null)],
   });
 
-  const handleClick = (idx) => {
-    const squares = [...gameState.squares];
-    if (calculateWinner(squares) || squares[idx]) {
-      return;
-    }
-    setGameState((gs) => {
-      squares[idx] = gameState.currentPlayer ? "X" : "O";
+  const winner = useMemo(() => {
+    return calculateWinner(gameState.squares);
+  }, [gameState.squares]);
 
-      const createHistory = gameState.history.slice();
-      createHistory.push(squares);
-      return Object.assign(
-        {},
-        {
+  const handleClick = useCallback(
+    (idx) => {
+      if (winner || gameState.squares[idx]) {
+        return;
+      }
+
+      setGameState((gs) => {
+        const squares = gs.squares.map((sq, index) =>
+          index === idx ? (gs.currentPlayer ? "X" : "O") : sq
+        );
+
+        return {
           squares,
-          currentPlayer: !gameState.currentPlayer,
-          history: createHistory,
-        }
-      );
-    });
+          currentPlayer: !gs.currentPlayer,
+          history: [...gs.history, squares],
+        };
+      });
+    },
+    [winner, gameState, setGameState]
+  );
+
+  const handleFuture = (log, idx) => () => {
+    setGameState((gs) => ({
+      squares: log,
+      currentPlayer: !(idx % 2),
+      history: [...gs.history.slice(0, idx + 1)],
+    }));
   };
 
-  const handleFuture = (log, idx) => {
-    const oldHistory = [...gameState.history];
-
-    const newHistory = oldHistory.slice(0, idx);
-    newHistory.push(log);
-    const currentPlayer = idx % 2 ? false : true;
-    setGameState({ squares: log, currentPlayer, history: newHistory });
-  };
+  console.log("squares", gameState);
 
   return (
     <div className="gameContainer">
       <Board gameState={gameState} handleClick={handleClick} />
-      <Status
-        winner={calculateWinner(gameState.squares)}
-        next={gameState.currentPlayer}
-      />
+
+      {getMessageByStatus(winner, gameState.currentPlayer)}
+
       <HistoryLog history={gameState.history} handleFuture={handleFuture} />
     </div>
   );
