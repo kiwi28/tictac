@@ -37,6 +37,7 @@ export const Game = () => {
   );
 
   const handleFuture = (log, idx) => () => {
+    // currying
     setGameState((gs) => ({
       squares: log,
       currentPlayer: !(idx % 2),
