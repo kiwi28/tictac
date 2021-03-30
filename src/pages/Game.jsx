@@ -11,6 +11,16 @@ export const Game = () => {
     history: [Array(9).fill(null)],
   });
 
+  const localGameState = localStorage.getItem("localGameState");
+  if (
+    localGameState &&
+    JSON.parse(localGameState).history.length > gameState.history.length
+  ) {
+    setGameState(JSON.parse(localGameState));
+  } else {
+    localStorage.setItem("localGameState", JSON.stringify(gameState));
+  }
+
   const winner = useMemo(() => {
     return calculateWinner(gameState.squares);
   }, [gameState.squares]);
@@ -44,8 +54,6 @@ export const Game = () => {
       history: [...gs.history.slice(0, idx + 1)],
     }));
   };
-
-  console.log("squares", gameState);
 
   return (
     <div className="gameContainer">
