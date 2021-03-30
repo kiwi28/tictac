@@ -33,6 +33,15 @@ export const Game = () => {
     });
   };
 
+  const handleFuture = (log, idx) => {
+    const oldHistory = [...gameState.history];
+
+    const newHistory = oldHistory.slice(0, idx);
+    newHistory.push(log);
+    const currentPlayer = idx % 2 ? false : true;
+    setGameState({ squares: log, currentPlayer, history: newHistory });
+  };
+
   return (
     <div className="gameContainer">
       <Board gameState={gameState} handleClick={handleClick} />
@@ -40,7 +49,7 @@ export const Game = () => {
         winner={calculateWinner(gameState.squares)}
         next={gameState.currentPlayer}
       />
-      <HistoryLog history={gameState.history} />
+      <HistoryLog history={gameState.history} handleFuture={handleFuture} />
     </div>
   );
 };
