@@ -6,9 +6,9 @@ export const HistoryLog = ({ history, handleFuture }) => {
     <>
       {history.map((log, idx) => {
         return (
-          <h1 className="log" key={idx} onClick={handleFuture(log, idx)}>
+          <button className="log" key={idx} onClick={handleFuture(log, idx)}>
             {idx ? `Go to step ${idx}` : "Go to game start"}
-          </h1>
+          </button>
         );
       })}
     </>
