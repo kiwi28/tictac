@@ -1,29 +1,29 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import Board from "../components/Board";
 import HistoryLog from "../components/HistoryLog";
 import "../styles/Game.css";
 import { calculateWinner, getMessageByStatus } from "../utils.js";
 
+const STORAGE_KEY = "localGameState";
+const defaultState = {
+  squares: Array(9).fill(null),
+  currentPlayer: true,
+  history: [Array(9).fill(null)],
+};
+
 export const Game = () => {
-  const [gameState, setGameState] = useState({
-    squares: Array(9).fill(null),
-    currentPlayer: true,
-    history: [Array(9).fill(null)],
+  const [gameState, setGameState] = useState(() => {
+    const storageState = localStorage.getItem(STORAGE_KEY);
+    if (storageState) {
+      return JSON.parse(storageState);
+    }
+
+    return defaultState;
   });
 
-  const localGameState = localStorage.getItem("localGameState");
-  if (
-    localGameState &&
-    JSON.parse(localGameState).history.length > gameState.history.length
-  ) {
-    setGameState(JSON.parse(localGameState));
-  } else {
-    localStorage.setItem("localGameState", JSON.stringify(gameState));
-  }
-
-  const winner = useMemo(() => {
-    return calculateWinner(gameState.squares);
-  }, [gameState.squares]);
+  const winner = useMemo(() => calculateWinner(gameState.squares), [
+    gameState.squares,
+  ]);
 
   const handleClick = useCallback(
     (idx) => {
@@ -46,14 +46,20 @@ export const Game = () => {
     [winner, gameState, setGameState]
   );
 
-  const handleFuture = (log, idx) => () => {
-    // currying
-    setGameState((gs) => ({
-      squares: log,
-      currentPlayer: !(idx % 2),
-      history: [...gs.history.slice(0, idx + 1)],
-    }));
-  };
+  const handleFuture = useCallback(
+    (log, idx) => () => {
+      setGameState((gs) => ({
+        squares: log,
+        currentPlayer: !(idx % 2),
+        history: [...gs.history.slice(0, idx + 1)],
+      }));
+    },
+    [setGameState]
+  );
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
+  }, [gameState]);
 
   return (
     <div className="gameContainer">
